@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8>
+  <title>AUM</title>
+  <meta name="viewport" content="width=device-width">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!--<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">-->
+  <style>
+  body {margin:auto;}
+
+  a {color:inherit;}
+
+  ol {display:inline; padding:0; margin:0;}
+  
+  .girl {display:inline-block; vertical-align:middle; margin:3px; position:relative; color:white;}
+  .girl ul {padding:0; margin:0; white-space:nowrap; width:100px; overflow:hidden;}
+  .girl li {display:inline-block;vertical-align:top;}
+  .girl li img {display:block; width:100px;height:100px; background:#eee;}
+  .girl dl {
+  	position:absolute;bottom:0; width:100%; right:0;z-index:1; margin:0; visibility:hidden;
+  	font-family:arial; color:white; background:rgba(0,0,0,.5); padding:.2em; box-sizing:border-box;
+  	text-align:center;
+  }
+  .girl dl dt {display:none;}
+  .girl dl dd {display:inline; margin:0;}
+  .girl:hover dl {visibility:visible;}
+
+  [rel=next] {display:inline-block; vertical-align:middle; width:100px;height:100px; cursor:pointer;}
+  </style>
+  <script id="girl" type="text/x-handlebars-template">
+  <a href="http://www.adopteunmec.com/profile/{{id}}">
+  	<ul>
+  	  <li>
+  	    <img src="{{pic}}" alt="{{pseudo}}">
+  	  </li>{{#each pics}}<li>
+  	  	<img data-src="{{this}}" alt="{{pseudo}}">
+  	  </li>{{/each}}
+  	</ul>
+  	<dl>
+  	  <dt>Mails/Baskets</dt>
+  	  	<dd>{{mails}}/{{baskets}}</dd>
+  	  <dt>Last-seen</dt>
+  	  	<dd>{{lastSeen}}d</dd>
+  	  <dt>kpoints</dt>
+  	  	<dd>{{kpoints}}k</dd>
+  	</dl>
+  </a>
+  </script>
+</head>
+<body>
+	<ol></ol>
+	<button rel="next">...</button>
+
+	<script src="vendor/jquery.js"></script>
+	<script src="vendor/jquery.couch.js"></script>
+	<script src="vendor/underscore.js"></script>
+	<script src="vendor/backbone.js"></script>
+	<script src="vendor/backbone-couchdb.js"></script>
+	<script>
+	// http://janmonschke.com/projects/backbone-couchdb.html#usage
+	Backbone.couch_connector.config.db_name = "aum";
+	Backbone.couch_connector.config.ddoc_name = "app";
+	Backbone.couch_connector.config.global_changes = false;
+	</script>
+	<script src="vendor/handlebars.js"></script>
+	<script src="vendor/konami.js"></script>
+	<script src="vendor/jquery.waypoints.js"></script>
+	
+	<script>
+	var Girl = Backbone.Model.extend({});
+	var GirlList = Backbone.Collection.extend({
+	    url : "/girls",
+	    model: Girl,
+	    db : {
+	        view : "freshActiveAndSexy"
+	    }
+	});
+	GirlList.prototype.more = function () {
+		this.fetch({add: true, skip: this.length, limit: 20});
+	};
+
+	GirlView = Backbone.View.extend({
+		className: 'girl',
+		initialize: function () {
+			this.template = Handlebars.compile($('#girl').html());
+		},
+		render: function () {
+			var model = this.model;
+
+			//
+		    // Convert a string (with space separators) to an integer
+		    //
+		    // Ex: "2 765" -> 2765
+		    //
+		    function str2int(str) {
+		      return parseInt(str.replace(/\s/g, ''), 10);
+		    }
+
+		    function approx(x, n) {
+		      n || (n = 1);
+		      
+		      return ~~(x/n);
+		    }
+
+			this.$el.html(this.template({
+				id: model.get('id'),
+				pseudo: model.get('pseudo'),
+				pic: model.get('pics')[0],
+				pics: model.get('pics').slice(1),
+				mails: model.get('mail'),
+				baskets: model.get('basket'),
+				lastSeen: Math.floor((new Date().getTime() - model.get('updatedAt')) / (1000*3600*24)),
+				kpoints: approx(str2int(model.get('points')), 1000)
+			}));
+
+			return this;
+		}
+	});
+	var GirlListView = Backbone.View.extend({
+	  initialize: function () {
+	  	var collection = this.collection;
+
+	  	collection.on('add', this.addOne, this);
+		collection.on('reset', this.addAll, this);
+	  },
+	  addOne: function (model) {
+	    var girlView = new GirlView({
+	    	tagName: 'li',
+	    	model: model
+	    });
+	    this.$el.append(girlView.render().el);
+	  },
+	  addAll: function () {
+	  	this.collection.forEach(this.addOne, this);
+	  },
+	  render: function () {
+	  	this.addAll();
+	  }
+	});
+
+	girlList = new GirlList();
+	girlListView = new GirlListView({
+		el: $('ol')[0],
+		collection: girlList
+	});
+
+	// http://paulirish.com/2009/cornify-easter-egg-with-jquery/#comment-68011
+	/*var konami_keys = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+	var konami_index = 0;
+	$(document).keydown(function (e) {
+	    if (e.keyCode === konami_keys[konami_index++]) {
+	        if (konami_index === konami_keys.length) {
+	            $(document).unbind('keydown', arguments.callee);
+
+	            girlList.more();
+				$('[rel=next]').click(function () {
+					girlList.more();
+				});
+	        }
+	    } else {
+	        konami_index = 0;
+	    }
+	});*/
+	konami = new Konami();
+	konami.code = konami.iphone.code = function () {
+		girlList.more();
+		$('[rel=next]').click(function () {
+			girlList.more();
+		});
+	};
+	konami.load();
+	</script>
+</body>
+</html>
