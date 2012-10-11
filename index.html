@@ -110,7 +110,7 @@
         pics: model.get('pics').slice(1),
         mails: model.get('mail'),
         baskets: model.get('basket'),
-        lastSeen: Math.floor((new Date().getTime() - model.get('updatedAt')) / (1000*3600*24)),
+        lastSeen: Math.floor((new Date().getTime() - model.get('lastSeenAt')) / (1000*3600*24)),
         kpoints: approx(str2int(model.get('points')), 1000)
       }));
 
