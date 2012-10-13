@@ -7,29 +7,103 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <!--<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">-->
   <style>
-  body {margin:auto;}
+  body {margin:auto; background-color:#333;}
 
   a {color:inherit;}
 
-  ol {display:inline; padding:0; margin:0;}
+  ol {/*display:inline; */padding:0; margin:0;}
   
-  .girl {display:inline-block; vertical-align:middle; margin:3px; position:relative; color:white;}
+  /* Girl */
+  .girl {
+    display:inline-block; vertical-align:middle; margin:3px; width:100px; position:relative;
+    background-color:rgba(255,255,255,.97);
+  }
+  /** pics **/
   .girl ul {padding:0; margin:0; white-space:nowrap; width:100px; overflow:hidden;}
   .girl li {display:inline-block;vertical-align:top;}
   .girl li img {display:block; width:100px;height:100px; background:#eee;}
+  /** link */
+
+  /** pseudo */
+  h1 {display:none;}
+  p {display:none;}
+  a {display:none;}
+  
+  /** attributes */
   .girl dl {
     position:absolute;bottom:0; width:100%; right:0;z-index:1; margin:0; visibility:hidden;
-    font-family:arial; color:white; background:rgba(0,0,0,.5); padding:.2em; box-sizing:border-box;
+    font-family:arial; color:white; background:rgba(0,0,0,.5); padding:.2em; box-sizing:border-box;-moz-box-sizing:-webkit-border-box;box-sizing:-ms-border-box;-o-box-sizing:border-box;box-sizing:border-box;
     text-align:center;
   }
   .girl dl dt {display:none;}
   .girl dl dd {display:inline; margin:0;}
   .girl:hover dl {visibility:visible;}
 
+  /* active */
+  .girl.active {
+    width:312px;
+    padding:.5em; box-sizing:border-box;-moz-box-sizing:-webkit-border-box;box-sizing:-ms-border-box;-o-box-sizing:border-box;box-sizing:border-box;
+  }
+  .girl.active ul {float:left; margin-right:.5em;margin-bottom:.5em;}
+  .girl.active h1 {display:block; margin-top:0;margin-bottom:0;}
+  .girl.active dl {visibility:visible; position:static; text-align:inherit; background:none; color:inherit; font-size:70%;}
+  .girl.active p {display:block;}
+  .girl.active a {display:block;}
+
   [rel=next] {display:inline-block; vertical-align:middle; width:100px;height:100px; cursor:pointer;}
+
+  /**** Isotope Filtering ****/
+
+  .isotope-item {
+    z-index: 2;
+  }
+
+  .isotope-hidden.isotope-item {
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /**** Isotope CSS3 transitions ****/
+
+  .isotope,
+  .isotope .isotope-item {
+    -webkit-transition-duration: 0.8s;
+       -moz-transition-duration: 0.8s;
+        -ms-transition-duration: 0.8s;
+         -o-transition-duration: 0.8s;
+            transition-duration: 0.8s;
+  }
+
+  .isotope {
+    -webkit-transition-property: height, width;
+       -moz-transition-property: height, width;
+        -ms-transition-property: height, width;
+         -o-transition-property: height, width;
+            transition-property: height, width;
+  }
+
+  .isotope .isotope-item {
+    -webkit-transition-property: -webkit-transform, opacity;
+       -moz-transition-property:    -moz-transform, opacity;
+        -ms-transition-property:     -ms-transform, opacity;
+         -o-transition-property:         top, left, opacity;
+            transition-property:         transform, opacity;
+  }
+
+  /**** disabling Isotope CSS3 transitions ****/
+
+  .isotope.no-transition,
+  .isotope.no-transition .isotope-item,
+  .isotope .isotope-item.no-transition {
+    -webkit-transition-duration: 0s;
+       -moz-transition-duration: 0s;
+        -ms-transition-duration: 0s;
+         -o-transition-duration: 0s;
+            transition-duration: 0s;
+  }
   </style>
   <script id="girl" type="text/x-handlebars-template">
-  <a href="http://www.adopteunmec.com/profile/{{id}}">
+  <article>
     <ul>
       <li>
         <img src="{{pic}}" alt="{{pseudo}}">
@@ -37,6 +111,7 @@
         <img data-src="{{this}}" alt="{{pseudo}}">
       </li>{{/each}}
     </ul>
+    <h1>{{pseudo}}</h1>
     <dl>
       <dt>Mails/Baskets</dt>
         <dd>{{mails}}/{{baskets}}</dd>
@@ -45,7 +120,10 @@
       <dt>kpoints</dt>
         <dd>{{kpoints}}k</dd>
     </dl>
-  </a>
+    <p>{{description}}</p>
+    <a href="http://www.adopteunmec.com/profile/{{id}}">Visit her</a>
+    
+  </article>
   </script>
 </head>
 <body>
@@ -66,6 +144,7 @@
   <script src="vendor/handlebars.js"></script>
   <script src="vendor/konami.js"></script>
   <script src="vendor/jquery.waypoints.js"></script>
+  <script src="vendor/jquery.isotope.js"></script>
     
   <script>
   var Girl = Backbone.Model.extend({});
@@ -76,14 +155,20 @@
       view : "freshActiveAndSexy"
     }
   });
-  GirlList.prototype.more = function () {
-    this.fetch({add: true, skip: this.length, limit: 20});
+  GirlList.prototype.more = function (howmany) {
+    howmany || (howmany = 20);
+    this.fetch({add: true, skip: this.length, limit: howmany});
   };
 
   GirlView = Backbone.View.extend({
     className: 'girl',
     initialize: function () {
       this.template = Handlebars.compile($('#girl').html());
+
+      this.$el.click(function (e) {
+        $(this).toggleClass('active');
+        $(this).trigger('toggleActive');
+      });
     },
     render: function () {
       var model = this.model;
@@ -111,7 +196,8 @@
         mails: model.get('mail'),
         baskets: model.get('basket'),
         lastSeen: Math.floor((new Date().getTime() - (model.get('lastSeenAt') || 0)) / (1000*3600*24)),
-        kpoints: approx(str2int(model.get('points')), 1000)
+        kpoints: approx(str2int(model.get('points')), 1000),
+        description: model.get('description')
       }));
 
       return this;
@@ -120,6 +206,12 @@
   var GirlListView = Backbone.View.extend({
     initialize: function () {
       var collection = this.collection;
+
+      // http://isotope.metafizzy.co/index.html
+      this.$el.isotope();
+      this.$el.bind('toggleActive', _.bind(function (e) {
+        this.$el.isotope('reLayout');
+      }, this));
 
       collection.on('add', this.addOne, this);
       collection.on('reset', this.addAll, this);
@@ -130,8 +222,11 @@
         model: model
       });
       this.$el.append(girlView.render().el);
+
+      this.$el.isotope('insert', girlView.$el);
     },
     addAll: function () {
+      console.log(this, arguments);
       this.collection.forEach(this.addOne, this);
     },
     render: function () {
@@ -164,7 +259,7 @@
   });*/
   konami = new Konami();
   konami.code = konami.iphone.code = function () {
-    girlList.more();
+    girlList.more(20);
     $('[rel=next]').click(function () {
       girlList.more();
     });
