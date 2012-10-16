@@ -1,0 +1,43 @@
+/* Girl */
+.girl {
+  display:inline-block; vertical-align:middle; margin:3px; width:100px; position:relative;
+  background-color:rgba(255,255,255,.97);
+}
+/** pics **/
+.girl ul {padding:0; margin:0; white-space:nowrap; width:100px; overflow:hidden;}
+.girl li {display:inline-block;vertical-align:top;}
+.girl li img {
+  display:block; width:100px;height:100px; background:#eee;
+
+  /*http://updates.html5rocks.com/2011/12/CSS-Filter-Effects-Landing-in-WebKit*/
+  filter:url(filters.svg#grayscale);filter: gray;-webkit-filter: grayscale(1); -webkit-transition:-webkit-filter 10s;transition:filter 10s;
+}
+.girl:hover li img,
+.girl.active li img {filter:none;-webkit-filter:none;-webkit-transition-duration:.2s;}
+/** link */
+
+/** pseudo */
+h1 {display:none;}
+p {display:none;}
+a {display:none;}
+
+/** attributes */
+.girl dl {
+  position:absolute;bottom:0; width:100%; right:0;z-index:1; margin:0; visibility:hidden;
+  font-family:arial; color:white; background:rgba(0,0,0,.5); padding:.2em; box-sizing:border-box;-moz-box-sizing:-webkit-border-box;box-sizing:-ms-border-box;-o-box-sizing:border-box;box-sizing:border-box;
+  text-align:center;
+}
+.girl dl dt {display:none;}
+.girl dl dd {display:inline; margin:0;}
+.girl:hover dl {visibility:visible;}
+
+/* active */
+.girl.active {
+  width:312px;
+  padding:.5em; box-sizing:border-box;-moz-box-sizing:-webkit-border-box;box-sizing:-ms-border-box;-o-box-sizing:border-box;box-sizing:border-box;
+}
+.girl.active ul {float:left; margin-right:.5em;margin-bottom:.5em;}
+.girl.active h1 {display:block; margin-top:0;margin-bottom:0;}
+.girl.active dl {visibility:visible; position:static; text-align:inherit; background:none; color:inherit; font-size:70%;}
+.girl.active p {display:block;}
+.girl.active a {display:block;}
