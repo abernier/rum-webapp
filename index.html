@@ -45,13 +45,6 @@
   <script src="vendor/jquery.couch.js"></script>
   <script src="vendor/underscore.js"></script>
   <script src="vendor/backbone.js"></script>
-  <script src="vendor/backbone-couchdb.js"></script>
-  <script>
-  // http://janmonschke.com/projects/backbone-couchdb.html#usage
-  Backbone.couch_connector.config.db_name = "aum";
-  Backbone.couch_connector.config.ddoc_name = "app";
-  Backbone.couch_connector.config.global_changes = false;
-  </script>
   <script src="vendor/handlebars.js"></script>
   <script src="vendor/konami.js"></script>
   <script src="vendor/jquery.waypoints.js"></script>
@@ -145,7 +138,12 @@
     }
   });
   var GirlList = Backbone.Collection.extend({
-    url : "/girls",
+    url : '/aum/_design/app/_view/fresh',
+    parse: function (response) {
+      return _(response.rows).map(function (row) {
+        return row.value;
+      });
+    },
     model: Girl,
     comparator: function (a, b) {
       var scoreA = a.score();
@@ -162,14 +160,17 @@
 
       return ret;
     },
-    db : {
-      view : "fresh"
+    more: function (howmany) {
+      howmany || (howmany = 3);
+      this.fetch({
+        data: {
+          skip: this.length,
+          limit: howmany
+        },
+        add: true, merge: true
+      });
     }
   });
-  GirlList.prototype.more = function (howmany) {
-    howmany || (howmany = 3);
-    this.fetch({add: true, merge: true, skip: this.length, limit: howmany});
-  };
 
   GirlView = Backbone.View.extend({
     className: 'girl',
