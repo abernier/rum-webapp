@@ -138,7 +138,7 @@
     }
   });
   var GirlList = Backbone.Collection.extend({
-    url : '/rum/_design/app/_view/freshActiveAndSexy',
+    url : 'http://localhost:5984/rum/_design/app/_view/freshActiveAndSexy',
     parse: function (response) {
       return _(response.rows).map(function (row) {
         return row.value;
@@ -303,31 +303,18 @@
     collection: girlList
   });
 
-  // http://paulirish.com/2009/cornify-easter-egg-with-jquery/#comment-68011
-  /*var konami_keys = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
-  var konami_index = 0;
-  $(document).keydown(function (e) {
-    if (e.keyCode === konami_keys[konami_index++]) {
-      if (konami_index === konami_keys.length) {
-        $(document).unbind('keydown', arguments.callee);
-
-        girlList.more();
-        $('[rel=next]').click(function () {
-          girlList.more();
-        });
-      }
-    } else {
-      konami_index = 0;
-    }
-  });*/
-  konami = new Konami();
+  /*konami = new Konami();
   konami.code = konami.iphone.code = function () {
     girlList.more(20);
     $('[rel=next]').click(function () {
       girlList.more();
     });
   };
-  konami.load();
+  konami.load();*/
+  girlList.more(20);
+  $('[rel=next]').click(function () {
+    girlList.more();
+  });
   </script>
 </body>
 </html>
